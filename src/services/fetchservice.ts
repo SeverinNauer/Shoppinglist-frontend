@@ -5,23 +5,30 @@ export interface IErrorResult {
   message: string;
 }
 
-export type SuccessResult<TR> = TR | string
+export type SuccessResult<TR> = TR | string;
 
 type Result<TR> = SuccessResult<TR> | IErrorResult;
+
+const getDataFromResponse = async (response: Response) => {
+  let resString = await response.text();
+  try {
+    return JSON.parse(resString);
+  } catch {
+    return resString;
+  }
+};
 
 const fetchMeth = async <TR>(request: Request): Promise<Result<TR>> => {
   try {
     const response = await fetch(request);
     if (response.ok && response.status >= 200 && response.status < 300) {
-      let resString = await response.text();
-      try{
-        return JSON.parse(resString);
-      }catch{
-        return resString;
-      }
+      return await getDataFromResponse(response);
     } else {
-      const err: { title: string } = await response.json();
-      return { code: response.status, message: err.title };
+      const data = await getDataFromResponse(response);
+      if (typeof data === "string") {
+        return { code: response.status, message: data };
+      }
+      return { code: response.status, message: data.title };
     }
   } catch (ex) {
     return { code: 0, message: ex.message };
