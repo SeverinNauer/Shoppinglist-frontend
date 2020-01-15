@@ -18,6 +18,7 @@ import {
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import { useAuthenticationReducer } from "../hooks/useAuthentication";
+import { useGlobalStateReducer } from "../hooks/useGlobalState";
 
 const drawerWidth = 240;
 
@@ -54,6 +55,11 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     logoutButton: {
       marginLeft: "auto"
+    },
+    title:{
+      "&:hover":{
+        cursor: "pointer"
+      }
     }
   })
 );
@@ -62,6 +68,7 @@ const Drawer: React.FC = props => {
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch = useAuthenticationReducer();
+  const globalStateDispatch = useGlobalStateReducer();
 
   const logout = () => {
     dispatch({ type: "removeToken" });
@@ -71,13 +78,7 @@ const Drawer: React.FC = props => {
     <div>
       <div className={classes.toolbar} />
       <Divider />
-      <List>
-        {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
+      <Typography variant="h6">Favoriten</Typography>
       <Divider />
       <List>
         {["All mail", "Trash", "Spam"].map((text, index) => (
@@ -107,7 +108,7 @@ const Drawer: React.FC = props => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap>
+          <Typography variant="h6" className={classes.title} noWrap onClick={() => globalStateDispatch({type: "removeShoppingList"})}>
             Einkaufsliste
           </Typography>
           <Button

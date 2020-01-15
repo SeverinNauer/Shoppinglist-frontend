@@ -1,4 +1,5 @@
 import LocalStorageUtiltites from "../utils/LocalStorageUtilities";
+import download from "downloadjs";
 
 const baseUrl = "https://localhost:44370/";
 
@@ -37,11 +38,26 @@ const fetchMeth = async <TR>(request: Request): Promise<Result<TR>> => {
   }
 };
 
-export const post = async <T, TR>(endpoint: string, data: T) => {
+const getHeaders: any = (authenticated: boolean) => {
+  return authenticated
+    ? {
+        "Content-Type": "application/json",
+        Authorization: LocalStorageUtiltites.jwtToken
+      }
+    : {
+        "Content-Type": "application/json"
+      };
+};
+
+export const post = async <T, TR>(
+  endpoint: string,
+  data: T,
+  authenticated: boolean = false
+) => {
   let request = new Request(`${baseUrl}${endpoint}`, {
     method: "POST",
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
+    headers: getHeaders(authenticated)
   });
   return await fetchMeth<TR>(request);
 };
@@ -51,10 +67,32 @@ export const get = async <TR>(
 ) => {
   let request = new Request(`${baseUrl}${endpoint}`, {
     method: "Get",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization" : LocalStorageUtiltites.jwtToken
-    }
+    headers: getHeaders(authenticated)
+  });
+  return await fetchMeth<TR>(request);
+};
+
+export const getFile = async (endpoint: string, fileName: string) => {
+  let request = new Request(`${baseUrl}${endpoint}`, {
+    method: "Get",
+    headers: getHeaders(true)
+  });
+  let result = await fetch(request);
+  if (result.ok && result.status >= 200 && result.status < 300) {
+    let blob = await result.blob();
+    download(blob, fileName, "application/octet-stream");
+  }
+};
+
+export const put = async <T, TR>(
+  endpoint: string,
+  data: T,
+  authenticated: boolean = false
+) => {
+  let request = new Request(`${baseUrl}${endpoint}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+    headers: getHeaders(authenticated)
   });
   return await fetchMeth<TR>(request);
 };

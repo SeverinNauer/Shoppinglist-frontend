@@ -2,8 +2,8 @@ import { Button, Card, createStyles, Grid, Link, makeStyles, Theme, Typography }
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import InputField from "../components/InputField";
-import { post, isSuccess } from "../services/fetchservice";
-import { useAuthentication, useAuthenticationReducer } from "./../hooks/useAuthentication";
+import { isSuccess, post } from "../services/fetchservice";
+import { useAuthentication } from "./../hooks/useAuthentication";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -59,7 +59,6 @@ const SignUpPage = () => {
   const [password2, setPassword2] = useState("");
   const history = useHistory();
   const authentication = useAuthentication();
-  const dispatch = useAuthenticationReducer();
 
   const onLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
     event.preventDefault();
@@ -67,13 +66,13 @@ const SignUpPage = () => {
   };
 
   const signup = async () => {
-    if(password !== password2){
+    if (password !== password2) {
       return;
     }
     const data: ISignupData = { Username: username, Password: password };
     const response = await post<ISignupData, any>("Account/create", data);
     if (isSuccess(response)) {
-      history.push("/login")
+      history.push("/login");
     }
   };
 
