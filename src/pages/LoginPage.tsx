@@ -99,6 +99,7 @@ const LoginPage = () => {
                 value={password}
                 label="Passwort"
                 onChange={value => setPassword(value)}
+                type="password"
               />
             </div>
             <div className={classes.action}>

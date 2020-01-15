@@ -1,3 +1,5 @@
+import LocalStorageUtiltites from "../utils/LocalStorageUtilities";
+
 const baseUrl = "https://localhost:44370/";
 
 export interface IErrorResult {
@@ -40,6 +42,19 @@ export const post = async <T, TR>(endpoint: string, data: T) => {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }
+  });
+  return await fetchMeth<TR>(request);
+};
+export const get = async <TR>(
+  endpoint: string,
+  authenticated: boolean = false
+) => {
+  let request = new Request(`${baseUrl}${endpoint}`, {
+    method: "Get",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization" : LocalStorageUtiltites.jwtToken
+    }
   });
   return await fetchMeth<TR>(request);
 };

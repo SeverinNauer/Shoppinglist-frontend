@@ -6,6 +6,7 @@ interface IProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  type?: "password"
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -25,6 +26,7 @@ const InputField = (props: IProps) => {
 
   return (
     <TextField
+      type={props.type || "text"}
       className={props.className}
       label={props.label}
       InputLabelProps={{
