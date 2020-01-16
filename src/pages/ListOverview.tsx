@@ -1,31 +1,30 @@
 import {
   Button,
+  Card,
   createStyles,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  makeStyles,
-  Theme,
-  Typography,
+  Divider,
+  Grid,
+  IconButton,
   List,
   ListItem,
-  Card,
-  Grid,
-  Divider,
+  ListItemSecondaryAction,
   ListItemText,
-  ListItemIcon,
-  IconButton,
-  ListItemSecondaryAction
+  makeStyles,
+  Theme,
+  Typography
 } from "@material-ui/core";
-import React, { useEffect, useState, useCallback } from "react";
-import InputField from "../components/InputField";
-import { get, isSuccess, post } from "../services/fetchservice";
-import IShoppingList from "./../models/IShoppingList";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import StarIcon from "@material-ui/icons/Star";
 import StarBorderIcon from "@material-ui/icons/StarBorder";
+import React, { useCallback, useEffect, useState } from "react";
+import InputField from "../components/InputField";
 import { useGlobalState, useGlobalStateReducer } from "../hooks/useGlobalState";
+import { get, isSuccess, post, put } from "../services/fetchservice";
+import IShoppingList from "./../models/IShoppingList";
 import ShoppingListView from "./ShoppingListView";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -54,6 +53,11 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface ICreateList {
   listName: string;
+}
+
+interface IChangeIsFavourite {
+  listId: number;
+  isFavourite: boolean;
 }
 
 const ListOverview = () => {
@@ -85,6 +89,20 @@ const ListOverview = () => {
     );
     setDialogIsOpen(false);
     setNewListName("");
+    if (isSuccess(response)) {
+      fetchAllLists();
+    }
+  };
+
+  const setListIsFavourite = (
+    listId: number,
+    isFavourite: boolean
+  ) => async () => {
+    const response = await put<IChangeIsFavourite, IShoppingList>(
+      "ShoppingList/changeListIsFavourite",
+      { listId, isFavourite },
+      true
+    );
     if (isSuccess(response)) {
       fetchAllLists();
     }
@@ -125,11 +143,11 @@ const ListOverview = () => {
                             <ListItemText>{list.listname}</ListItemText>
                             <ListItemSecondaryAction>
                               {list.isFavourite ? (
-                                <IconButton>
+                                <IconButton onClick={setListIsFavourite(list.id, false)}>
                                   <StarIcon />
                                 </IconButton>
                               ) : (
-                                <IconButton>
+                                <IconButton onClick={setListIsFavourite(list.id, true)}>
                                   <StarBorderIcon />
                                 </IconButton>
                               )}

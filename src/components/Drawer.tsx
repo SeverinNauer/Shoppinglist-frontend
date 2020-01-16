@@ -18,7 +18,7 @@ import {
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import { useAuthenticationReducer } from "../hooks/useAuthentication";
-import { useGlobalStateReducer } from "../hooks/useGlobalState";
+import { useGlobalStateReducer, useGlobalState } from "../hooks/useGlobalState";
 
 const drawerWidth = 240;
 
@@ -56,10 +56,14 @@ const useStyles = makeStyles((theme: Theme) =>
     logoutButton: {
       marginLeft: "auto"
     },
-    title:{
-      "&:hover":{
+    title: {
+      "&:hover": {
         cursor: "pointer"
       }
+    },
+    favouriteTitle: {
+      marginLeft: theme.spacing(2),
+      marginBottom: theme.spacing(1)
     }
   })
 );
@@ -69,6 +73,7 @@ const Drawer: React.FC = props => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch = useAuthenticationReducer();
   const globalStateDispatch = useGlobalStateReducer();
+  const globalState = useGlobalState();
 
   const logout = () => {
     dispatch({ type: "removeToken" });
@@ -77,15 +82,20 @@ const Drawer: React.FC = props => {
   const drawer = (
     <div>
       <div className={classes.toolbar} />
-      <Divider />
-      <Typography variant="h6">Favoriten</Typography>
+      <Typography variant="h6" className={classes.favouriteTitle}>
+        Favoriten
+      </Typography>
       <Divider />
       <List>
-        {["All mail", "Trash", "Spam"].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
+        {globalState.lists
+          .filter(list => list.isFavourite)
+          .map((list, index) => {
+            return (
+              <ListItem button key={index}>
+                <ListItemText primary={list.listname} />
+              </ListItem>
+            );
+          })}
       </List>
     </div>
   );
@@ -108,7 +118,12 @@ const Drawer: React.FC = props => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" className={classes.title} noWrap onClick={() => globalStateDispatch({type: "removeShoppingList"})}>
+          <Typography
+            variant="h6"
+            className={classes.title}
+            noWrap
+            onClick={() => globalStateDispatch({ type: "removeShoppingList" })}
+          >
             Einkaufsliste
           </Typography>
           <Button
