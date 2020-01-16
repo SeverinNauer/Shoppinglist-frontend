@@ -17,15 +17,16 @@ import {
   Theme,
   Typography
 } from "@material-ui/core";
+import DeleteIcon from "@material-ui/icons/Delete";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import StarIcon from "@material-ui/icons/Star";
 import StarBorderIcon from "@material-ui/icons/StarBorder";
 import React, { useCallback, useEffect, useState } from "react";
 import InputField from "../components/InputField";
 import { useGlobalState, useGlobalStateReducer } from "../hooks/useGlobalState";
-import { get, isSuccess, post, put } from "../services/fetchservice";
 import IShoppingList from "./../models/IShoppingList";
 import ShoppingListView from "./ShoppingListView";
+import useFetch from "./../services/fetchservice";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -37,16 +38,24 @@ const useStyles = makeStyles((theme: Theme) =>
       marginBottom: theme.spacing(2)
     },
     list: {
-      marginTop: theme.spacing(3)
+      marginTop: theme.spacing(3),
+      height: "calc(100vh - 200px)",
+      overflowY: "auto"
     },
     listPad: {
       padding: 0
     },
     card: {
-      borderRadius: 0
+      borderRadius: 0,
     },
     title: {
       marginTop: "auto"
+    },
+    listItemInput: {
+      paddingRight: theme.spacing(20)
+    },
+    input: {
+      padding: "14px 12px"
     }
   })
 );
@@ -55,10 +64,12 @@ interface ICreateList {
   listName: string;
 }
 
-interface IChangeIsFavourite {
+export interface IChangeIsFavourite {
   listId: number;
   isFavourite: boolean;
 }
+
+interface IDeleteList {}
 
 const ListOverview = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
@@ -66,6 +77,7 @@ const ListOverview = () => {
 
   const globalState = useGlobalState();
   const dispatchGlobalState = useGlobalStateReducer();
+  const [get, post, put, getFile, isSuccess] = useFetch();
 
   const fetchAllLists = useCallback(async () => {
     const response = await get<IShoppingList[]>("ShoppingList/getAll", true);
@@ -108,8 +120,36 @@ const ListOverview = () => {
     }
   };
 
-  const listItemClicked = (list: IShoppingList) => () => {
-    dispatchGlobalState({ type: "setShoppingList", selectedList: list });
+  const deleteList = (listId: number) => async () => {
+    const response = await post<IDeleteList, IShoppingList>(
+      "ShoppingList/delete",
+      { listId },
+      true
+    );
+    if (isSuccess(response)) {
+      fetchAllLists();
+    }
+  };
+
+  const listItemClicked = (list: IShoppingList) => async () => {
+    const response = await get<IShoppingList>(
+      "ShoppingList/get?listId=" + list.id,
+      true
+    );
+
+    if (isSuccess(response)) {
+      dispatchGlobalState({
+        type: "setShoppingList",
+        selectedList: response as IShoppingList
+      });
+    }
+  };
+
+  const downloadFile = (list: IShoppingList) => async () => {
+    await getFile(
+      "ShoppingList/getAsFile?listId=" + list.id,
+      list.listname + ".txt"
+    );
   };
 
   const classes = useStyles();
@@ -142,16 +182,23 @@ const ListOverview = () => {
                           <ListItem button onClick={listItemClicked(list)}>
                             <ListItemText>{list.listname}</ListItemText>
                             <ListItemSecondaryAction>
+                              <IconButton onClick={deleteList(list.id)}>
+                                <DeleteIcon />
+                              </IconButton>
                               {list.isFavourite ? (
-                                <IconButton onClick={setListIsFavourite(list.id, false)}>
+                                <IconButton
+                                  onClick={setListIsFavourite(list.id, false)}
+                                >
                                   <StarIcon />
                                 </IconButton>
                               ) : (
-                                <IconButton onClick={setListIsFavourite(list.id, true)}>
+                                <IconButton
+                                  onClick={setListIsFavourite(list.id, true)}
+                                >
                                   <StarBorderIcon />
                                 </IconButton>
                               )}
-                              <IconButton>
+                              <IconButton onClick={downloadFile(list)}>
                                 <GetAppIcon />
                               </IconButton>
                             </ListItemSecondaryAction>

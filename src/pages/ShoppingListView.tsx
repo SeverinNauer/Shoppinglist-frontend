@@ -1,13 +1,30 @@
-import { Card, createStyles, Divider, Fab, Grid, IconButton, List, ListItem, ListItemText, makeStyles, TextField, Theme, Typography } from "@material-ui/core";
+import {
+  Card,
+  createStyles,
+  Divider,
+  Fab,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  makeStyles,
+  TextField,
+  Theme,
+  Typography
+} from "@material-ui/core";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import GetAppIcon from "@material-ui/icons/GetApp";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useGlobalState, useGlobalStateReducer } from "../hooks/useGlobalState";
 import IListItem from "../models/IListItem";
 import IShoppingList from "../models/IShoppingList";
-import { getFile, isSuccess, post, put } from "../services/fetchservice";
+import StarIcon from "@material-ui/icons/Star";
+import StarBorderIcon from "@material-ui/icons/StarBorder";
+import { IChangeIsFavourite } from "./ListOverview";
+import useFetch from "../services/fetchservice";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -20,7 +37,9 @@ const useStyles = makeStyles((theme: Theme) =>
       marginBottom: "auto"
     },
     list: {
-      marginTop: theme.spacing(3)
+      marginTop: theme.spacing(3),
+      height: "calc(100vh - 200px)",
+      overflowY: "auto"
     },
     card: {
       borderRadius: 0,
@@ -37,6 +56,12 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     listItemInput: {
       paddingRight: theme.spacing(10)
+    },
+    downloadButton: {
+      marginLeft: theme.spacing(1)
+    },
+    editButton: {
+      marginRight: theme.spacing(1)
     }
   })
 );
@@ -62,6 +87,11 @@ interface IChangeItemChecked {
   isChecked: boolean;
 }
 
+interface IChangeListName {
+  listId: number;
+  listName: string;
+}
+
 const ShoppingListView = () => {
   const globalState = useGlobalState();
   const globalStateDispatch = useGlobalStateReducer();
@@ -70,8 +100,24 @@ const ShoppingListView = () => {
   const [editedItem, setEditedItem] = useState("");
   const [editItemId, setEditItemId] = useState(-1);
   const selectedList = globalState.selectedList;
+  const [newListName, setNewListName] = useState(selectedList?.listname);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [get, post, put, getFile, isSuccess] = useFetch();
+
+  const fetchAllLists = useCallback(async () => {
+    const response = await get<IShoppingList[]>("ShoppingList/getAll", true);
+    if (isSuccess(response)) {
+      globalStateDispatch({
+        type: "setAllLists",
+        lists: response as IShoppingList[]
+      });
+    }
+  }, [globalStateDispatch, isSuccess, get]);
 
   const onItemCheck = (item: IListItem) => async () => {
+    if(editItemId === item.id){
+      return;
+    }
     const data: IChangeItemChecked = {
       listId: selectedList!.id,
       itemId: item.id,
@@ -164,11 +210,49 @@ const ShoppingListView = () => {
     }
   };
 
+  const onListnameChangeKeyDown = async (
+    event: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    if (event.keyCode === 13 && newListName) {
+      const response = await put<IChangeListName, IShoppingList>(
+        "ShoppingList/changeListname",
+        { listId: selectedList!.id, listName: newListName || "" },
+        true
+      );
+      if (isSuccess(response)) {
+        await fetchAllLists();
+        globalStateDispatch({
+          type: "setShoppingList",
+          selectedList: response as IShoppingList
+        });
+        setIsEditMode(false);
+      }
+    }
+  };
+
   const downloadFile = async () => {
     await getFile(
       "ShoppingList/getAsFile?listId=" + selectedList?.id,
       selectedList?.listname + ".txt"
     );
+  };
+
+  const setListIsFavourite = (
+    listId: number,
+    isFavourite: boolean
+  ) => async () => {
+    const response = await put<IChangeIsFavourite, IShoppingList>(
+      "ShoppingList/changeListIsFavourite",
+      { listId, isFavourite },
+      true
+    );
+    if (isSuccess(response)) {
+      await fetchAllLists();
+      globalStateDispatch({
+        type: "setShoppingList",
+        selectedList: response as IShoppingList
+      });
+    }
   };
 
   if (!selectedList) {
@@ -177,11 +261,46 @@ const ShoppingListView = () => {
   return (
     <div>
       <div className={classes.titleCont}>
-        <Typography variant="h6" className={classes.title}>
-          Liste - {globalState.selectedList?.listname}
-        </Typography>
+        {isEditMode ? (
+          <TextField
+            className={classes.listItemInput}
+            color="secondary"
+            variant="outlined"
+            value={newListName}
+            onChange={event => setNewListName(event.target.value)}
+            onKeyDown={onListnameChangeKeyDown}
+            InputProps={{
+              classes: {
+                input: classes.input
+              }
+            }}
+          />
+        ) : (
+          <Typography variant="h6" className={classes.title}>
+            {globalState.selectedList?.listname}
+          </Typography>
+        )}
         <div>
-          <Fab onClick={downloadFile}>
+          <Fab
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={classes.editButton}
+          >
+            <EditIcon />
+          </Fab>
+          {globalState?.selectedList?.isFavourite ? (
+            <Fab
+              onClick={setListIsFavourite(globalState.selectedList.id, false)}
+            >
+              <StarIcon />
+            </Fab>
+          ) : (
+            <Fab
+              onClick={setListIsFavourite(globalState?.selectedList!.id, true)}
+            >
+              <StarBorderIcon />
+            </Fab>
+          )}
+          <Fab onClick={downloadFile} className={classes.downloadButton}>
             <GetAppIcon />
           </Fab>
         </div>
@@ -210,6 +329,7 @@ const ShoppingListView = () => {
                               }
                             }}
                             fullWidth
+                            autoFocus
                           />
                         </ListItemText>
                       ) : (

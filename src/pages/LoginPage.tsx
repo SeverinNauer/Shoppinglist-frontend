@@ -1,9 +1,21 @@
-import { Button, Card, createStyles, Grid, Link, makeStyles, Theme, Typography } from "@material-ui/core";
+import {
+  Button,
+  Card,
+  createStyles,
+  Grid,
+  Link,
+  makeStyles,
+  Theme,
+  Typography
+} from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import InputField from "../components/InputField";
-import { post, isSuccess } from "../services/fetchservice";
-import { useAuthentication, useAuthenticationReducer } from "./../hooks/useAuthentication";
+import {
+  useAuthentication,
+  useAuthenticationReducer
+} from "./../hooks/useAuthentication";
+import useFetch from "../services/fetchservice";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -59,6 +71,7 @@ const LoginPage = () => {
   const history = useHistory();
   const authentication = useAuthentication();
   const dispatch = useAuthenticationReducer();
+  const [, post, , , isSuccess] = useFetch();
 
   const onLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
     event.preventDefault();

@@ -19,6 +19,8 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import { useAuthenticationReducer } from "../hooks/useAuthentication";
 import { useGlobalStateReducer, useGlobalState } from "../hooks/useGlobalState";
+import IShoppingList from "../models/IShoppingList";
+import useFetch from "../services/fetchservice";
 
 const drawerWidth = 240;
 
@@ -74,6 +76,21 @@ const Drawer: React.FC = props => {
   const dispatch = useAuthenticationReducer();
   const globalStateDispatch = useGlobalStateReducer();
   const globalState = useGlobalState();
+  const [get, , , , isSuccess] = useFetch();
+
+  const listItemClicked = (list: IShoppingList) => async () => {
+    const response = await get<IShoppingList>(
+      "ShoppingList/get?listId=" + list.id,
+      true
+    );
+
+    if (isSuccess(response)) {
+      globalStateDispatch({
+        type: "setShoppingList",
+        selectedList: response as IShoppingList
+      });
+    }
+  };
 
   const logout = () => {
     dispatch({ type: "removeToken" });
@@ -91,7 +108,7 @@ const Drawer: React.FC = props => {
           .filter(list => list.isFavourite)
           .map((list, index) => {
             return (
-              <ListItem button key={index}>
+              <ListItem button key={index} onClick={listItemClicked(list)}>
                 <ListItemText primary={list.listname} />
               </ListItem>
             );

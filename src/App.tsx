@@ -12,6 +12,7 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import { SnackbarProvider } from "notistack";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -31,17 +32,22 @@ const App: React.FC = () => {
           initialState={undefined}
           reducer={AuthenticationReducer}
         >
-          <Switch>
-            <Route exact path="/">
-              <MainPage />
-            </Route>
-            <Route path="/login">
-              <LoginPage />
-            </Route>
-            <Route path="/signup">
-              <SignUpPage />
-            </Route>
-          </Switch>
+          <SnackbarProvider
+            maxSnack={3}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Switch>
+              <Route exact path="/">
+                <MainPage />
+              </Route>
+              <Route path="/login">
+                <LoginPage />
+              </Route>
+              <Route path="/signup">
+                <SignUpPage />
+              </Route>
+            </Switch>
+          </SnackbarProvider>
         </AuthenticationProvider>
       </BrowserRouter>
     </div>

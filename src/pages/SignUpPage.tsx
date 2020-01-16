@@ -1,9 +1,19 @@
-import { Button, Card, createStyles, Grid, Link, makeStyles, Theme, Typography } from "@material-ui/core";
+import {
+  Button,
+  Card,
+  createStyles,
+  Grid,
+  Link,
+  makeStyles,
+  Theme,
+  Typography
+} from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import InputField from "../components/InputField";
-import { isSuccess, post } from "../services/fetchservice";
 import { useAuthentication } from "./../hooks/useAuthentication";
+import useFetch from "../services/fetchservice";
+import { useSnackbar } from "notistack";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -59,6 +69,8 @@ const SignUpPage = () => {
   const [password2, setPassword2] = useState("");
   const history = useHistory();
   const authentication = useAuthentication();
+  const snackbar = useSnackbar();
+  const [, post, , , isSuccess] = useFetch();
 
   const onLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
     event.preventDefault();
@@ -67,6 +79,9 @@ const SignUpPage = () => {
 
   const signup = async () => {
     if (password !== password2) {
+      snackbar.enqueueSnackbar("Die Passwörter stimmen nicht überein", {
+        variant: "error"
+      });
       return;
     }
     const data: ISignupData = { Username: username, Password: password };
