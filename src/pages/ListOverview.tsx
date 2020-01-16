@@ -15,7 +15,8 @@ import {
   Divider,
   ListItemText,
   ListItemIcon,
-  IconButton
+  IconButton,
+  ListItemSecondaryAction
 } from "@material-ui/core";
 import React, { useEffect, useState, useCallback } from "react";
 import InputField from "../components/InputField";
@@ -122,11 +123,20 @@ const ListOverview = () => {
                         <React.Fragment key={index}>
                           <ListItem button onClick={listItemClicked(list)}>
                             <ListItemText>{list.listname}</ListItemText>
-                            <ListItemIcon>
+                            <ListItemSecondaryAction>
+                              {list.isFavourite ? (
+                                <IconButton>
+                                  <StarIcon />
+                                </IconButton>
+                              ) : (
+                                <IconButton>
+                                  <StarBorderIcon />
+                                </IconButton>
+                              )}
                               <IconButton>
                                 <GetAppIcon />
                               </IconButton>
-                            </ListItemIcon>
+                            </ListItemSecondaryAction>
                           </ListItem>
                           {index === globalState.lists.length - 1 || (
                             <Divider />

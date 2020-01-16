@@ -1,28 +1,13 @@
+import { Card, createStyles, Divider, Fab, Grid, IconButton, List, ListItem, ListItemText, makeStyles, TextField, Theme, Typography } from "@material-ui/core";
+import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
+import GetAppIcon from "@material-ui/icons/GetApp";
 import React, { useState } from "react";
 import { useGlobalState, useGlobalStateReducer } from "../hooks/useGlobalState";
-import {
-  makeStyles,
-  Theme,
-  createStyles,
-  Typography,
-  IconButton,
-  Fab,
-  Grid,
-  Card,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  TextField
-} from "@material-ui/core";
-import GetAppIcon from "@material-ui/icons/GetApp";
-import DeleteIcon from "@material-ui/icons/Delete";
-import IShoppingList from "../models/IShoppingList";
-import { post, isSuccess, put, get, getFile } from "../services/fetchservice";
 import IListItem from "../models/IListItem";
-import EditIcon from "@material-ui/icons/Edit";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import IShoppingList from "../models/IShoppingList";
+import { getFile, isSuccess, post, put } from "../services/fetchservice";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -49,6 +34,9 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     itemIsChecked: {
       textDecoration: "line-through"
+    },
+    listItemInput: {
+      paddingRight: theme.spacing(10)
     }
   })
 );
@@ -209,6 +197,7 @@ const ShoppingListView = () => {
                       {item.id === editItemId ? (
                         <ListItemText disableTypography>
                           <TextField
+                            className={classes.listItemInput}
                             variant="outlined"
                             value={editedItem}
                             onChange={event =>
@@ -220,6 +209,7 @@ const ShoppingListView = () => {
                                 input: classes.input
                               }
                             }}
+                            fullWidth
                           />
                         </ListItemText>
                       ) : (
@@ -235,7 +225,6 @@ const ShoppingListView = () => {
                         <IconButton onClick={onEditModeItem(item)}>
                           <EditIcon />
                         </IconButton>
-
                         <IconButton onClick={onDeleteItem(item)}>
                           <DeleteIcon />
                         </IconButton>
@@ -258,6 +247,7 @@ const ShoppingListView = () => {
                           input: classes.input
                         }
                       }}
+                      fullWidth
                     />
                   </ListItemText>
                 </ListItem>
