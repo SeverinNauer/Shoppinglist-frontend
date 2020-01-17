@@ -109,7 +109,7 @@ const SignUpPage = () => {
             <div className={classes.fields}>
               <InputField
                 value={username}
-                label="Benutzername"
+                label="Email"
                 onChange={value => setUsername(value)}
               />
               <InputField
